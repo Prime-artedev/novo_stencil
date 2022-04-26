@@ -33,7 +33,7 @@ app.get('/', (req, res) => { // para renderizar a home;
     res.render('home')
 })
 
-//! Rota testada tenho que trabalhar na parte de posi~]ao da imagem e da personalização letra
+//! Rota trabalhar personalização letra
 //Todo - codigo abaixo
 
 //Todo - Rota de tratamento
@@ -207,7 +207,7 @@ app.post("/IMAGEM/", (req, res, next) => {
 
                 // salvamos o caminho da imagem e tambem o tipo do arquivo
                 const buffer = canvas.toBuffer("image/png");
-                fs.writeFileSync("./teste10.png", buffer, (err) => {
+                return fs.downloadImage("./teste10.png", buffer, (err) => {
 
                     if (err) throw err;
 
