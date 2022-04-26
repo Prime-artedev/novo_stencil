@@ -37,7 +37,7 @@ app.get('/', (req, res) => { // para renderizar a home;
 //Todo - codigo abaixo
 
 //Todo - Rota de tratamento
-app.post("/IMAGEM/", (req, res, next) => {
+app.get("/IMAGEM/", (req, res, next) => {
 
     //const dados = req.body.dados;
 
