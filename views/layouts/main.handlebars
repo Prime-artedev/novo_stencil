@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+  <nav id="navbar">
+
+    </ul>
+  </nav>
+  <h1>Apagar Um Banco de Dados</h1>
+  <form action="/DROP/DATABASE" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Apagar Banco Dados:</label>
+      <input type="text" name="drop_dataBase" placeholder="Digite  o nome do banco">
+    </div>
+    <input type="submit" value="Apagar">
+  </form>
+
+  <h1>Criar uma tabela</h1>
+  <form action="/CREATE/TABLE" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Criar uma tabela</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <input type="submit" value="criar">
+  </form>
+  <h1>Apagar Tabela</h1>
+  <form action="/DROP/TABLE" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Apagar Tabela</label>
+      <input type="text" name="database" placeholder="Digite  o nome da tabela">
+    </div>
+    <input type="submit" value="Apagar">
+  </form>
+  </form>
+  <h1>Inserir Coluna</h1>
+  <form action="ADD/COLUN" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Nome Tabela:</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun" placeholder="Digite  o nome da coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Tipo do dado:</label>
+      <input type="text" name="tipo_dado" placeholder="Digite o tipo do dado">
+    </div>
+    <input type="submit" value="criar">
+  </form>
+
+  <h1>Apagar Coluna</h1>
+  <form action="/DROP/COLUN" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Nome Tabela:</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun" placeholder="Digite  o nome da coluna">
+    </div>
+    <input type="submit" value="Apagar">
+  </form>
+
+  <h1>Trocar nome da coluna</h1>
+  <form action="/MODF/COLUN" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Nome Tabela:</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna a ser modificada:</label>
+      <input type="text" name="colun_modifica" placeholder="Digite  o nome da coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna Nova:</label>
+      <input type="text" name="nova_colun" placeholder="Digite  o nome da Nova coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Tipo do dado nova coluna:</label>
+      <input type="text" name="tipo_dado" placeholder="Digite tipo de dado">
+    </div>
+    <input type="submit" value="Modificar">
+  </form>
+
+  <h1>Estrutura da tabela</h1>
+  <form action="/DESC/TABLE" method="get" class="form">
+    <div class="form-control">
+      <label for="name">Nome Tabela:</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <input type="submit" value="Busca">
+  </form>
+
+  <h1>Input de dados</h1>
+  <form action="/INPUT/" method="POST" class="form">
+    <div class="form-control">
+      <label for="name">Nome Tabela:</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun1" placeholder="Digite  o nome da coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Dado:</label>
+      <input type="text" name="dado_input1" placeholder="Digite  o dado">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun2" placeholder="Digite  o nome da coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Dado:</label>
+      <input type="text" name="dado_input2" placeholder="Digite  o dado">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun3" placeholder="Digite  o nome da coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Dado:</label>
+      <input type="text" name="dado_input3" placeholder="Digite  o dado">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun4" placeholder="Digite  o nome da coluna">
+    </div>
+    <div class="form-control">
+      <label for="name">Dado:</label>
+      <input type="text" name="dado_input4" placeholder="Digite  o dado">
+    </div>
+    <input type="submit" value="Adicionar">
+  </form>
+
+  <h1>Retorno de dados</h1>
+  <form action="/BUSCAR/" method="get" class="form">
+    <div class="form-control">
+      <label for="name">Nome Tabela:</label>
+      <input type="text" name="table" placeholder="Digite  o nome da tabela">
+    </div>
+    <div class="form-control">
+      <label for="name">Nome Coluna:</label>
+      <input type="text" name="colun" placeholder="Digite  o nome da Coluna">
+    </div>
+    <input type="submit" value="Busca">
+  </form>
+
+
+  {{{ body }}}
+</body>
+
+</html>
