@@ -207,7 +207,7 @@ app.get("/IMAGEM/", (req, res, next) => {
 
                 // salvamos o caminho da imagem e tambem o tipo do arquivo
                 const buffer = canvas.toBuffer("image/png");
-                return fs.downloadImage("./teste10.png", buffer, (err) => {
+                fs.writeFileSync("./teste10.png", buffer, (err) => {
 
                     if (err) throw err;
 
