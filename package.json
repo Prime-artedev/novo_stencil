@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-    "scripts": {
-    "start": "node index"
-
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www"
   },
   "keywords": [],
   "author": "",
@@ -14,9 +14,17 @@
     "canvas": "^2.9.1",
     "canvas-constructor": "^5.0.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
     "express": "^4.17.3",
     "express-handlebars": "^6.0.5",
+    "face-api.js": "^0.22.2",
+    "multer": "^1.4.4",
+    "mysql": "^2.18.1",
     "nodemon": "^2.0.15",
+    "path": "^0.12.7",
+    "poll": "^3.2.0",
+    "request-promise": "^4.2.6",
+    "sharp": "^0.30.4",
     "skia-canvas": "^0.9.29"
   }
 }

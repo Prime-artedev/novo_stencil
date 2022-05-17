@@ -1,13 +1,26 @@
 //Pacotes
+const sharp = require('sharp')
+
 const express = require('express');
 const exphbs = require('express-handlebars');
 const {
+    registerFont,
     createCanvas,
     loadImage
 } = require("canvas");
 const fs = require("fs");
 const app = express();
 const cors = require('cors')
+require('dotenv').config()
+const multer = require('multer'); // aceita upload
+const uploads = require('./upload').uploads
+const modelo_de_dados = require('./config/modelo')
+const camada_text = require('./text').camada_text
+const multer_config = require('./config/multer_config')
+const salvar_font_db = require('./salvar_font_db').salvar_font_db
+const buscar_fonts = require('./buscar_font').buscar_fonts
+
+const detect_AllFaces = require('./face_detect').detect_AllFaces
 
 //Utilitarios
 app.use(
@@ -20,211 +33,662 @@ app.use(express.json()) // para pegar o bory em JSON
 app.engine('handlebars', exphbs.engine());
 app.set('view engine', 'handlebars');
 app.use(express.static('public'));
-
-//Extenção
-//Função que faz a quebra do texto
-const {
-    formatTitle
-} = require("./formatTitle");
-
+app.use(cors());
 
 //Todo - Home
 app.get('/', (req, res) => { // para renderizar a home;
     res.render('home')
 })
 
-//! Rota trabalhar personalização letra
-//Todo - codigo abaixo
+//Todo - mostra fonts
+app.get('/registro_fonts', (req, res) => {
+
+    buscar_fonts(res)
+
+})
+
+//Todo - rota uploads fonts
+app.post('/font', multer(multer_config).single('font'), (req, res) => {
+
+    const font_name = req.file.filename
+
+    salvar_font_db(font_name, res)
+
+
+
+})
+
+//todo - Rota modelo
+app.get("/Modelo/", (req, res, next) => {
+
+    return res.status(200).send({
+        modelo_de_dados
+    }).end()
+})
 
 //Todo - Rota de tratamento
-app.get("/IMAGEM/", (req, res, next) => {
+app.post("/IMAGEM/", (req, res, next) => {
+    const modifications = req.body.modifications;
+    const canvas_dados = req.body.canvas
 
-    //const dados = req.body.dados;
 
-    // dados = {
-    //     //tamanho da imagen
-    //     width: 1000,
-    //     height: 1000,
-
-    //     //image
-    //     mockup: "https://cdn.usestencil.com/uploads/69c3c935-0906-407e-a155-511df554b06b/c106ac17-a830-4680-a4fa-4db19fbf9b37/globo-play-2-sem-fundo-2-1109504032.png",
-
-    //     Foto: "https://cdn.usestencil.com/uploads/69c3c935-0906-407e-a155-511df554b06b/c106ac17-a830-4680-a4fa-4db19fbf9b37/portrait-happy-smiley-man-1083944675.jpg",
-
-    //     //Texto:
-    //     texto_01: "Thiago"
-    // }
-
-    // montamos o tamanho da imagem
-    // const width = 1000;
-    // const height = 1000;
-
-    const width = 1000;
-    const height = 1777;
+    const width = canvas_dados.width
+    const height = canvas_dados.height
 
     // montamos o tamnho do documento de fundo o matriz
     const canvas = createCanvas(width, height);
     const context = canvas.getContext("2d");
-    const context_01 = canvas.getContext("2d");
-    const context_02 = canvas.getContext("2d");
-    const context_03 = canvas.getContext("2d");
 
     //Definimos a base do quadro
-    context.fillStyle = "#f000";
+    context.fillStyle = canvas_dados.color //"#f000";
     context.fillRect(0, 0, width, height);
 
 
-    //Todo - style - 01
-    //const texto_01 = "Thiago"
-    const texto_01 = " "
 
-    //posição primeiro texto
-    const texto_1_A = 690;
-    const texto_1_l = 640;
-    const lineHeight = 100; //posição da segunda linha
+    class controler_personalization {
 
+        static personalização_camada_02 = (a, b, c, d) => {
 
-    context_01.font = "bold 50pt 'Menlo'";
-    context_01.fillStyle = "#fff"
+            loadImage(modifications[0].src).then((image_0) => {
 
+                const width = modifications[0].width
+                const height = modifications[0].height
+                const position_x = modifications[0].position_x
+                const position_y = modifications[0].position_y
+                canvas.getContext('2d')
+                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                context.rotate(modifications[0].rotate * Math.PI / 180);
+                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
 
-    //Texto a ser enviado ate 40 caracteres ira quebrar em 2 linhas
-    const text = formatTitle(texto_01);
-    context_01.fillText(text[0], texto_1_l, texto_1_A);
-    if (text[1]) context.fillText(text[1], texto_1_l, texto_1_A + lineHeight);
-
-
-    //Todo - style - 02
-
-    const texto2 = ""
-
-    //posição do texto
-    const texto_2_A = 150;
-    const texto_2_l = 500
-
-    context_02.fillStyle = "#66ff66";
-    //edição da texto 2
-    context_02.font = "40pt 'PT Sans'";
-    context_02.fillText(`${texto2}`, texto_2_l, texto_2_A);
-
-    //Todo - style - 03
-
-    const texto3 = ""
-
-    //posição do texto
-    const texto_3_A = 800;
-    const texto_3_l = 200;
-
-    //estilo da frase
-    context_03.textBaseline = 'top'
-    context_03.font = "50pt 'PT Sans'";
-    context_03.fillStyle = '#f000'
-
-    //Estilo do quadro
-    const textWidth = context_03.measureText(texto3).width
-    context_03.fillRect(texto_3_l - textWidth / 25 - 90, texto_3_A - 40, textWidth + 200, 150)
-    context_03.fillStyle = '#f000'
-    context_03.fillText(texto3, texto_3_l, texto_3_A)
+                (modifications[0].Face_Detection == true) ? context.drawImage(image_0, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_0, position_x, position_y, width * 1, height * 1)
+                context.restore();
 
 
-    //todo - Posição das imagens
-    //Posição da imagen dinamica
-    // const Position_mockup = {
-    //     w: 0,
-    //     h: 0,
-    //     x: dados.width,
-    //     y: dados.height,
-    // }
-    const Position_mockup = {
-        w: 0,
-        h: 0,
-        x: width,
-        y: height,
+                let operador_ternario_1;
+
+                let camada_1 = modifications[1].tipo
+
+                if (camada_1 == "text") {
+
+                    operador_ternario_1 = camada_text(modifications, 1, canvas_dados)
+
+                } else {
+                    operador_ternario_1 = modifications[1].src
+                }
+
+
+                loadImage(operador_ternario_1).then((image_1) => {
+
+
+
+                    context.translate(modifications[0].position_x + modifications[0].width * 1 / 2, modifications[0].position_y + modifications[0].height * 1 / 2);
+                    context.rotate(-modifications[0].rotate * Math.PI / 180);
+                    context.translate(-modifications[0].position_x - modifications[0].width * 1 / 2, -modifications[0].position_y - modifications[0].height * 1 / 2);
+
+                    if (camada_1 == "text") {
+                        const width = canvas_dados.width
+                        const height = canvas_dados.height
+                        const position_x = 0
+                        const position_y = 0
+
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                        context.drawImage(image_1, position_x, position_y, width, height);
+
+                    } else {
+
+                        const width = modifications[1].width
+                        const height = modifications[1].height
+                        const position_x = modifications[1].position_x
+                        const position_y = modifications[1].position_y
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                        (modifications[1].Face_Detection == true) ? context.drawImage(image_1, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_1, position_x, position_y, width * 1, height * 1)
+                        context.restore();
+
+                    }
+                    const buffer = canvas.toBuffer("image/png");
+                    const image_02 = ("./image.png", buffer);
+
+                    // fs.writeFileSync("./testefinalxxxx.png", buffer, (err) => {
+                    //     if (err) throw err;
+                    //     res.end()
+                    // });
+
+                    uploads(image_02, res)
+                })
+            })
+        };
+        static personalização_camada_03 = (a, b, c, d) => {
+
+            loadImage(modifications[0].src).then((image_0) => {
+
+                const width = modifications[0].width
+                const height = modifications[0].height
+                const position_x = modifications[0].position_x
+                const position_y = modifications[0].position_y
+                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                context.rotate(modifications[0].rotate * Math.PI / 180);
+                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                (modifications[0].Face_Detection == true) ? context.drawImage(image_0, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_0, position_x, position_y, width * 1, height * 1)
+                context.restore();
+
+                let operador_ternario_1;
+
+                let camada_1 = modifications[1].tipo
+
+                if (camada_1 == "text") {
+
+                    operador_ternario_1 = camada_text(modifications, 1, canvas_dados)
+
+                } else {
+                    operador_ternario_1 = modifications[1].src
+                }
+
+                loadImage(operador_ternario_1).then((image_1) => {
+                    context.translate(modifications[0].position_x + modifications[0].width * 1 / 2, modifications[0].position_y + modifications[0].height * 1 / 2);
+                    context.rotate(-modifications[0].rotate * Math.PI / 180);
+                    context.translate(-modifications[0].position_x - modifications[0].width * 1 / 2, -modifications[0].position_y - modifications[0].height * 1 / 2);
+
+                    if (camada_1 == "text") {
+                        const width = canvas_dados.width;
+                        const height = canvas_dados.height;
+                        const position_x = 0;
+                        const position_y = 0;
+
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                        context.drawImage(image_1, position_x, position_y, width, height);
+
+                    } else {
+                        const width = modifications[1].width;
+                        const height = modifications[1].height;
+                        const position_x = modifications[1].position_x;
+                        const position_y = modifications[1].position_y;
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                        (modifications[1].Face_Detection == true) ? context.drawImage(image_1, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_1, position_x, position_y, width * 1, height * 1)
+                        context.restore();
+
+                    };
+
+                    let operador_ternario_2;
+
+                    let camada_2 = modifications[2].tipo
+
+                    if (camada_2 == "text") {
+
+                        operador_ternario_2 = camada_text(modifications, 2, canvas_dados)
+
+                    } else {
+                        operador_ternario_2 = modifications[2].src
+                    }
+
+
+
+                    loadImage(operador_ternario_2).then((image_2) => {
+                        context.translate(modifications[1].position_x + modifications[1].width * 1 / 2, modifications[1].position_y + modifications[1].height * 1 / 2);
+                        context.rotate(-modifications[1].rotate * Math.PI / 180);
+                        context.translate(-modifications[1].position_x - modifications[1].width * 1 / 2, -modifications[1].position_y - modifications[1].height * 1 / 2);
+
+                        if (camada_2 == "text") {
+                            const width = canvas_dados.width;
+                            const height = canvas_dados.height;
+                            const position_x = 0;
+                            const position_y = 0;
+
+                            context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                            context.rotate(modifications[2].rotate * Math.PI / 180);
+                            context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                            context.drawImage(image_2, position_x, position_y, width, height);
+
+                        } else {
+
+                            const width = modifications[2].width;
+                            const height = modifications[2].height;
+                            const position_x = modifications[2].position_x;
+                            const position_y = modifications[2].position_y;
+                            canvas.getContext('2d')
+                            context.save();
+                            context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                            context.rotate(modifications[2].rotate * Math.PI / 180);
+                            context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                            (modifications[2].Face_Detection == true) ? context.drawImage(image_2, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_2, position_x, position_y, width * 1, height * 1)
+                            context.restore();
+
+
+                        };
+
+                        const buffer = canvas.toBuffer("image/png");
+                        const image_03 = ("./image.png", buffer);
+
+                        // fs.writeFileSync("./testefinal333.png", buffer, (err) => {
+                        //     if (err) throw err;
+                        //     res.end()
+                        // });
+
+                        uploads(image_03, res)
+
+
+                    })
+                })
+            })
+
+        };
+
+        static personalização_camada_04 = (a, b, c, d) => {
+
+            loadImage(modifications[0].src).then((image_0) => {
+
+                const width = modifications[0].width
+                const height = modifications[0].height
+                const position_x = modifications[0].position_x
+                const position_y = modifications[0].position_y
+                canvas.getContext('2d')
+                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                context.rotate(modifications[0].rotate * Math.PI / 180);
+                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                (modifications[0].Face_Detection == true) ? context.drawImage(image_0, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_0, position_x, position_y, width * 1, height * 1)
+                context.restore();
+
+
+                let operador_ternario_1;
+
+                let camada_1 = modifications[1].tipo
+
+                if (camada_1 == "text") {
+
+                    operador_ternario_1 = camada_text(modifications, 1, canvas_dados)
+
+                } else {
+                    operador_ternario_1 = modifications[1].src
+                }
+
+                loadImage(operador_ternario_1).then((image_1) => {
+
+                    context.translate(modifications[0].position_x + modifications[0].width * 1 / 2, modifications[0].position_y + modifications[0].height * 1 / 2);
+                    context.rotate(-modifications[0].rotate * Math.PI / 180);
+                    context.translate(-modifications[0].position_x - modifications[0].width * 1 / 2, -modifications[0].position_y - modifications[0].height * 1 / 2);
+
+                    if (camada_1 == "text") {
+                        const width = canvas_dados.width;
+                        const height = canvas_dados.height;
+                        const position_x = 0;
+                        const position_y = 0;
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                        context.drawImage(image_1, position_x, position_y, width, height);
+
+                    } else {
+                        const width = modifications[1].width;
+                        const height = modifications[1].height;
+                        const position_x = modifications[1].position_x;
+                        const position_y = modifications[1].position_y;
+                        canvas.getContext('2d')
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                        (modifications[1].Face_Detection == true) ? context.drawImage(image_1, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_1, position_x, position_y, width * 1, height * 1)
+                        context.restore();
+
+                    };
+
+                    let operador_ternario_2;
+
+                    let camada_2 = modifications[2].tipo
+
+                    if (camada_2 == "text") {
+
+                        operador_ternario_2 = camada_text(modifications, 2, canvas_dados)
+
+                    } else {
+                        operador_ternario_2 = modifications[2].src
+                    }
+
+                    loadImage(operador_ternario_2).then((image_2) => {
+
+                        context.translate(modifications[1].position_x + modifications[1].width * 1 / 2, modifications[1].position_y + modifications[1].height * 1 / 2);
+                        context.rotate(-modifications[1].rotate * Math.PI / 180);
+                        context.translate(-modifications[1].position_x - modifications[1].width * 1 / 2, -modifications[1].position_y - modifications[1].height * 1 / 2);
+
+                        if (camada_2 == "text") {
+                            const width = canvas_dados.width;
+                            const height = canvas_dados.height;
+                            const position_x = 0;
+                            const position_y = 0;
+                            context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                            context.rotate(modifications[2].rotate * Math.PI / 180);
+                            context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                            context.drawImage(image_2, position_x, position_y, width, height);
+
+                        } else {
+                            const width = modifications[2].width;
+                            const height = modifications[2].height;
+                            const position_x = modifications[2].position_x;
+                            const position_y = modifications[2].position_y;
+                            canvas.getContext('2d')
+                            context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                            context.rotate(modifications[2].rotate * Math.PI / 180);
+                            context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                            (modifications[2].Face_Detection == true) ? context.drawImage(image_2, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_2, position_x, position_y, width * 1, height * 1)
+                            context.restore();
+
+                        };
+                        let operador_ternario_3;
+
+                        let camada_3 = modifications[3].tipo
+
+                        if (camada_3 == "text") {
+
+                            operador_ternario_3 = camada_text(modifications, 3, canvas_dados)
+
+                        } else {
+                            operador_ternario_3 = modifications[3].src
+                        }
+                        loadImage(operador_ternario_3).then((image_3) => {
+                            context.translate(modifications[2].position_x + modifications[2].width * 1 / 2, modifications[2].position_y + modifications[2].height * 1 / 2);
+                            context.rotate(-modifications[2].rotate * Math.PI / 180);
+                            context.translate(-modifications[2].position_x - modifications[2].width * 1 / 2, -modifications[2].position_y - modifications[2].height * 1 / 2);
+
+                            if (camada_3 == "text") {
+                                const width = canvas_dados.width;
+                                const height = canvas_dados.height;
+                                const position_x = 0;
+                                const position_y = 0;
+                                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                                context.rotate(modifications[3].rotate * Math.PI / 180);
+                                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                                context.drawImage(image_3, position_x, position_y, width, height);
+
+                            } else {
+                                const width = modifications[3].width;
+                                const height = modifications[3].height;
+                                const position_x = modifications[3].position_x;
+                                const position_y = modifications[3].position_y;
+                                canvas.getContext('2d')
+                                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                                context.rotate(modifications[3].rotate * Math.PI / 180);
+                                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                                (modifications[3].Face_Detection == true) ? context.drawImage(image_3, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_3, position_x, position_y, width * 1, height * 1)
+                                context.restore();
+
+                            };
+
+                            const buffer = canvas.toBuffer("image/png");
+                            const image_04 = ("./image.png", buffer);
+
+                            // fs.writeFileSync("./testefinal444.png", buffer, (err) => {
+                            //     if (err) throw err;
+                            //     res.end()
+                            // });
+
+                            uploads(image_04, res)
+
+                        })
+                    })
+                })
+
+            })
+
+        };
+        static personalização_camada_05 = (a, b, c, d) => {
+            loadImage(modifications[0].src).then((image_0) => {
+
+                const width = modifications[0].width
+                const height = modifications[0].height
+                const position_x = modifications[0].position_x
+                const position_y = modifications[0].position_y
+                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                context.rotate(modifications[0].rotate * Math.PI / 180);
+                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                (modifications[0].Face_Detection == true) ? context.drawImage(image_0, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_0, position_x, position_y, width * 1, height * 1)
+                context.restore();
+
+                let operador_ternario_1;
+
+                let camada_1 = modifications[1].tipo
+
+                if (camada_1 == "text") {
+
+                    operador_ternario_1 = camada_text(modifications, 1, canvas_dados)
+
+                } else {
+                    operador_ternario_1 = modifications[1].src
+                }
+
+                loadImage(operador_ternario_1).then((image_1) => {
+
+                    context.translate(modifications[0].position_x + modifications[0].width * 1 / 2, modifications[0].position_y + modifications[0].height * 1 / 2);
+                    context.rotate(-modifications[0].rotate * Math.PI / 180);
+                    context.translate(-modifications[0].position_x - modifications[0].width * 1 / 2, -modifications[0].position_y - modifications[0].height * 1 / 2);
+
+                    if (camada_1 == "text") {
+                        const width = canvas_dados.width;
+                        const height = canvas_dados.height;
+                        const position_x = 0;
+                        const position_y = 0;
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                        context.drawImage(image_1, position_x, position_y, width, height);
+
+                    } else {
+                        const width = modifications[1].width;
+                        const height = modifications[1].height;
+                        const position_x = modifications[1].position_x;
+                        const position_y = modifications[1].position_y;
+                        context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                        context.rotate(modifications[1].rotate * Math.PI / 180);
+                        context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                        (modifications[1].Face_Detection == true) ? context.drawImage(image_1, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_1, position_x, position_y, width * 1, height * 1)
+                        context.restore();
+
+                    };
+
+                    let operador_ternario_2;
+
+                    let camada_2 = modifications[2].tipo
+
+                    if (camada_2 == "text") {
+
+                        operador_ternario_2 = camada_text(modifications, 2, canvas_dados)
+
+                    } else {
+                        operador_ternario_2 = modifications[2].src
+                    }
+
+                    loadImage(operador_ternario_2).then((image_2) => {
+
+                        context.translate(modifications[1].position_x + modifications[1].width * 1 / 2, modifications[1].position_y + modifications[1].height * 1 / 2);
+                        context.rotate(-modifications[1].rotate * Math.PI / 180);
+                        context.translate(-modifications[1].position_x - modifications[1].width * 1 / 2, -modifications[1].position_y - modifications[1].height * 1 / 2);
+
+                        if (camada_2 == "text") {
+                            const width = canvas_dados.width;
+                            const height = canvas_dados.height;
+                            const position_x = 0;
+                            const position_y = 0;
+                            context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                            context.rotate(modifications[2].rotate * Math.PI / 180);
+                            context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                            context.drawImage(image_2, position_x, position_y, width, height);
+
+                        } else {
+                            const width = modifications[2].width;
+                            const height = modifications[2].height;
+                            const position_x = modifications[2].position_x;
+                            const position_y = modifications[2].position_y;
+                            context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                            context.rotate(modifications[2].rotate * Math.PI / 180);
+                            context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                            (modifications[2].Face_Detection == true) ? context.drawImage(image_2, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_2, position_x, position_y, width * 1, height * 1)
+                            context.restore();
+                        };
+                        let operador_ternario_3;
+
+                        let camada_3 = modifications[3].tipo
+
+                        if (camada_3 == "text") {
+
+                            operador_ternario_3 = camada_text(modifications, 3, canvas_dados)
+
+                        } else {
+                            operador_ternario_3 = modifications[3].src
+                        }
+                        loadImage(operador_ternario_3).then((image_3) => {
+                            context.translate(modifications[2].position_x + modifications[2].width * 1 / 2, modifications[2].position_y + modifications[2].height * 1 / 2);
+                            context.rotate(-modifications[2].rotate * Math.PI / 180);
+                            context.translate(-modifications[2].position_x - modifications[2].width * 1 / 2, -modifications[2].position_y - modifications[2].height * 1 / 2);
+
+                            if (camada_3 == "text") {
+
+                                const width = canvas_dados.width;
+                                const height = canvas_dados.height;
+                                const position_x = 0;
+                                const position_y = 0;
+                                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                                context.rotate(modifications[3].rotate * Math.PI / 180);
+                                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                                context.drawImage(image_3, position_x, position_y, width, height);
+
+                            } else {
+                                const width = modifications[3].width;
+                                const height = modifications[3].height;
+                                const position_x = modifications[3].position_x;
+                                const position_y = modifications[3].position_y;
+                                context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                                context.rotate(modifications[3].rotate * Math.PI / 180);
+                                context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                                (modifications[3].Face_Detection == true) ? context.drawImage(image_3, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_3, position_x, position_y, width * 1, height * 1)
+                                context.restore();
+
+                            };
+                            let operador_ternario_4;
+
+                            let camada_4 = modifications[4].tipo
+
+                            if (camada_4 == "text") {
+
+                                operador_ternario_4 = camada_text(modifications, 4, canvas_dados)
+
+                            } else {
+                                operador_ternario_4 = modifications[4].src
+                            }
+                            loadImage(operador_ternario_4).then((image_4) => {
+                                context.translate(modifications[3].position_x + modifications[3].width * 1 / 2, modifications[3].position_y + modifications[3].height * 1 / 2);
+                                context.rotate(-modifications[3].rotate * Math.PI / 180);
+                                context.translate(-modifications[3].position_x - modifications[3].width * 1 / 2, -modifications[3].position_y - modifications[3].height * 1 / 2);
+
+                                if (camada_4 == "text") {
+                                    const width = canvas_dados.width;
+                                    const height = canvas_dados.height;
+                                    const position_x = 0;
+                                    const position_y = 0;
+                                    context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                                    context.rotate(modifications[4].rotate * Math.PI / 180);
+                                    context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+                                    context.drawImage(image_4, position_x, position_y, width, height);
+
+                                } else {
+                                    const width = modifications[4].width;
+                                    const height = modifications[4].height;
+                                    const position_x = modifications[4].position_x;
+                                    const position_y = modifications[4].position_y;
+                                    context.translate(position_x + width * 1 / 2, position_y + height * 1 / 2);
+                                    context.rotate(modifications[4].rotate * Math.PI / 180);
+                                    context.translate(-position_x - width * 1 / 2, -position_y - height * 1 / 2);
+
+                                    (modifications[4].Face_Detection == true) ? context.drawImage(image_4, a, b, c, d, position_x, position_y, width * 1, height * 1): context.drawImage(image_4, position_x, position_y, width * 1, height * 1)
+                                    context.restore();
+
+                                };
+
+                                const buffer = canvas.toBuffer("image/png");
+                                const image_05 = ("./image.png", buffer);
+
+                                // fs.writeFileSync("./testefinal555.png", buffer, (err) => {
+                                //     if (err) throw err;
+                                //     res.end()
+                                // });
+
+                                uploads(image_05, res)
+
+                            })
+                        })
+                    })
+                })
+            })
+
+        };
+
     }
-    const Position_Foto = {
-        w: 70, //largura esquerda para direita posição
-        h: 591, //altura de cima para baixo posição
-        y: 740, //altura tamanho
-        x: 878, //largura tamanho
-    }
-    // const Position_Foto = {
-    //     w: dados.posição_foto.w, //altura
-    //     h: dados.posição_foto.h,
-    //     x: dados.posição_foto.x,
-    //     y: dados.posição_foto.y
-    // }
 
 
-    //montamos a imagem e enviamos para o projt final
-    // let mockup = "https://cdn-0.imagensemoldes.com.br/wp-content/uploads/2018/07/Imagem-de-Festa-Cartaz-com-Bexigas-de-Anivers%C3%A1rio-PNG.png"
+    //Colocar a formula dinamica e tambem colocar colocar seletor no detect
 
-    // let Foto = "https://img.freepik.com/fotos-gratis/imagem-aproximada-em-tons-de-cinza-de-uma-aguia-careca-americana-em-um-fundo-escuro_181624-31795.jpg?w=740&t=st=1650491943~exp=1650492543~hmac=152791b7668606587891d3ec8546a565e50a72f091602572c99466cc15306dc5"
+    let seletor_camadas = modifications.length
 
+    let date_busc = modifications.map(el => el.Face_Detection)
+    const categorizador = (date_busc.indexOf(true))
 
-    //montamos a imagem e enviamos para o projt final
-    // let mockup = dados.mockup
-
-    // let Foto = dados.Foto
-
-    let mockup = "https://cdn.usestencil.com/uploads/69c3c935-0906-407e-a155-511df554b06b/e6d7a186-6965-4268-9004-bb6bcaa86c1c/arte-1701354715.png"
-
-    let Foto = "https://cdn.usestencil.com/uploads/69c3c935-0906-407e-a155-511df554b06b/c106ac17-a830-4680-a4fa-4db19fbf9b37/portrait-happy-smiley-man-1083944675.jpg"
+    console.log(seletor_camadas)
+    console.log(date_busc)
+    console.log(categorizador)
 
 
-    // salvamos o texto em camada
-    const buffer = canvas.toBuffer("image/png");
-    let texto_imag = ("./texto.png", buffer);
+    switch (seletor_camadas) {
+        case 2:
+
+            (categorizador == -1) ? controler_personalization.personalização_camada_02():
+                detect_AllFaces(modifications[categorizador].src).then(function (data) {
+                    controler_personalization.personalização_camada_02(data.x, data.y, data.width, data.height)
+                })
 
 
+            break;
+        case 3:
 
-    loadImage(Foto).then((image) => {
-        const {
-            w,
-            h,
-            x,
-            y
-        } = Position_Foto;
-        context.drawImage(image, w, h, x, y);
+            (categorizador == -1) ? controler_personalization.personalização_camada_03():
+                detect_AllFaces(modifications[categorizador].src).then(function (data) {
+                    controler_personalization.personalização_camada_03(data.x, data.y, data.width, data.height)
+                })
 
-        loadImage(mockup).then((image2) => {
-            const {
-                w,
-                h,
-                x,
-                y
-            } = Position_mockup;
-            context.drawImage(image2, w, h, x, y);
+            break;
+        case 4:
+            (categorizador == -1) ? controler_personalization.personalização_camada_04():
+                detect_AllFaces(modifications[categorizador].src).then(function (data) {
+                    controler_personalization.personalização_camada_04(data.x, data.y, data.width, data.height)
+                })
 
-            loadImage(texto_imag).then((image3) => {
-                const {
-                    w,
-                    h,
-                    x,
-                    y
-                } = Position_mockup;
-                context.drawImage(image3, w, h, x, y);
+            break;
+        case 5:
+            (categorizador == -1) ? controler_personalization.personalização_camada_05():
+                detect_AllFaces(modifications[categorizador].src).then(function (data) {
+                    controler_personalization.personalização_camada_05(data.x, data.y, data.width, data.height)
+                })
 
-
-                // salvamos o caminho da imagem e tambem o tipo do arquivo
-                const buffer = canvas.toBuffer("image/png");
-                fs.writeFileSync("./teste10.png", buffer, (err) => {
-
-                    if (err) throw err;
-
-                    res.end()
-                });
-
-
-            });
-
-        });
-
-    });
-
-    return res.status(200).send("arquivo criado").end()
-
+            break;
+    };
 })
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log("Servidor iniciado na porta 3000: http://localhost:3000/")
+
+app.listen(process.env.PORT_APP, () => {
+    console.log(`Servidor iniciado na porta`)
 });
