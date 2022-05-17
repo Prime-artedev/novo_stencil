@@ -1,9 +1,9 @@
 const poll = require('./db/conn')
 
 
-module.exports.salvar_font_db = async function (font_name, res) {
+module.exports.salvar_font_db = async function (font, res) {
 
-    const sql = await `INSERT INTO app_stylos (font_name) VALUE ('${font_name}')`
+    const sql = await `INSERT INTO app_stylos (font) VALUE ('${font}')`
 
     poll.getConnection((error, conn) => {
         if (error) {

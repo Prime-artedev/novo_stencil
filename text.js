@@ -9,23 +9,19 @@ const {
 } = require("canvas");
 
 
-
 module.exports.camada_text = function (modifications, variador, canvas_dados) {
 
-    let modelo = `${modifications[variador].font}`
-    let family = `${modifications[variador].family}`
+    let modelo = `${modifications[variador].font.toLowerCase()}`
+    let family = `${modifications[variador].family.toLowerCase()}`
 
     const font = {
         name: `'${family}'`,
         src: path.join(__dirname, `./fonts/${modelo}.ttf`)
-
     }
-
 
     registerFont(font.src, {
         family: font.name
     });
-
 
     const width = canvas_dados.width
     const height = canvas_dados.height
@@ -40,7 +36,7 @@ module.exports.camada_text = function (modifications, variador, canvas_dados) {
     const lineHeight = modifications[variador].position_2_line; //posição da segunda linha
     //estilo
 
-    context.font = `'${modifications[variador].estilo} ${modifications[variador].tamanho} ${modifications[variador].family}'`;
+    context.font = `'${modifications[variador].estilo} ${modifications[variador].tamanho} ${modifications[variador].family.toLowerCase()} '`;
 
 
     //cor
