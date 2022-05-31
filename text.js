@@ -23,8 +23,8 @@ module.exports.camada_text = function (modifications, variador, canvas_dados) {
         family: font.name
     });
 
-    const width = canvas_dados.width
-    const height = canvas_dados.height
+    const width = parseInt(canvas_dados.width)
+    const height = parseInt(canvas_dados.height)
     const canvas = createCanvas(width, height);
     const context = canvas.getContext("2d");
 

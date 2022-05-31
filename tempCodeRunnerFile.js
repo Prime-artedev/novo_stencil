@@ -1,0 +1,1 @@
+console.log([1000, '300', '500', undefined].indexOf(undefined))

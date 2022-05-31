@@ -1,16 +1,21 @@
-const mysql = require('mysql') // puxamos os dados do banco
 require('dotenv').config()
 
-const pool = mysql.createPool({ // toda a conexao com o banco de dados
-    connectionLimit: 10, // mantemos 10 conexões
-    host: process.env.HOST,
-    user: process.env.USER,
-    password: process.env.PASSWORD,
-    database: process.env.DATABASE,
-    // port: process.env.PORT_BASE
-
-})
+const {
+    Sequelize
+} = require("sequelize") // estamos importando so o sequelize
 
 
+const user = process.env.USER;
+const password = process.env.PASSWORD;
+const database = "app_stylos"
 
-module.exports = pool
+const sequelize = new Sequelize(database, user, password, { // fazendo a conexao com o banco
+
+    host: process.env.HOST, // aqui esta como local
+    dialect: 'mysql', // tipo do banco
+    port: process.env.PORT,
+
+}); // dados do banco de dados
+
+
+module.exports = sequelize // montamos a exportação da conexão
