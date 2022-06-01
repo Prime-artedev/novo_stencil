@@ -74,12 +74,3 @@ async function detect_AllFaces(imagen_detection) {
 }
 
 exports.detect_AllFaces = detect_AllFaces
-
-// async function teste() {
-
-//     await run().then(function (box) {
-
-//         console.log(box)
-//     })
-
-// }

@@ -17,7 +17,7 @@ const fs = require("fs");
 const app = express();
 const cors = require('cors')
 require('dotenv').config()
-const multer = require('multer'); // aceita upload
+const multer = require('multer');
 const uploads = require('./upload').uploads
 const modelo_de_dados = require('./config/modelo')
 const camada_text = require('./text').camada_text
@@ -25,12 +25,10 @@ const multer_config = require('./config/multer_config');
 
 const salvar_font_db = require('./salvar_font_db').salvar_font_db
 const buscar_fonts = require('./buscar_font').buscar_fonts
-const buscar_fonts_especifica = require('./buscar_font').buscar_fonts_especifica
 
 const detect_AllFaces = require('./face_detect').detect_AllFaces
 
 const font = require('./models/font')
-const conn = require('./db/conn')
 const {
     Op
 } = require('sequelize')
@@ -57,17 +55,22 @@ app.get('/', (req, res) => { // para renderizar a home;
 //Todo - mostra fonts
 app.get('/registro_fonts', (req, res) => {
 
-    buscar_fonts(res)
-
+    buscar_fonts().then((valor) => {
+        return res.status(200).json(valor);
+    })
 })
 
 //Todo - rota uploads fonts
 app.post('/font', multer(multer_config).single('font'), (req, res) => {
     const font_name = req.file.filename
+    console.log(font_name)
+    salvar_font_db(font_name).then((valor) => {
 
-
-    salvar_font_db(font_name, res)
-
+        if (valor === 'cadastrado') {
+            return res.status(200).json("Font ja estava cadastrada");
+        }
+        return res.status(200).json("Font cadastrada");
+    })
 })
 
 //todo - Rota modelo
@@ -168,33 +171,30 @@ const validation = [
     body("modifications").custom(async value => {
         let dados_font = value.filter(el => el.font !== undefined)
         let dados_family = value.filter(el => el.font !== undefined)
-        const x2 = dados_font[0].font
+        const x2 = `${dados_font[0].font}.ttf`
+
+        console.log(x2);
 
 
         return await font.findAll({
             where: {
-                font: {
-                    [Op.like]: `%${x2}`
-                }
+                font: `${x2}`
+
             },
             raw: true
         }).then(res => {
-            console.log(res, "avan")
+            console.log(res[0].font)
+            if (res[0].font !== x2) {
+
+                return Promise.reject("erro")
+            }
+
+
         })
-
-
-
-
-        //! adegua o banco de dados com sequelize e acabar a validação da font
-
 
     }).withMessage("Na Propriedade => font <== so podemos usar font cadastrada, e esta nao se encontra cadastrada; Obs: confira a escrita")
 
 ]
-
-
-// temos que validar a font se esta no banco de dados
-
 
 //Todo - Rota de tratamento
 app.post("/IMAGEM/", validation, (req, res) => {
@@ -203,10 +203,7 @@ app.post("/IMAGEM/", validation, (req, res) => {
         return res.status(400).json({
             errors: errors.array()
         });
-    }
-    // res.json({
-    //     msg: "sucesso"
-    // })
+    };
 
 
     const modifications = req.body.modifications;
@@ -775,9 +772,6 @@ app.post("/IMAGEM/", validation, (req, res) => {
 
     }
 
-
-    //Colocar a formula dinamica e tambem colocar colocar seletor no detect
-
     let seletor_camadas = modifications.length
 
     let date_busc = modifications.map(el => el.Face_Detection)
@@ -793,8 +787,6 @@ app.post("/IMAGEM/", validation, (req, res) => {
                 detect_AllFaces(modifications[categorizador].src).then(function (data) {
                     controler_personalization.personalização_camada_02(data.x, data.y, data.width, data.height)
                 })
-
-
             break;
         case 3:
 
@@ -802,24 +794,20 @@ app.post("/IMAGEM/", validation, (req, res) => {
                 detect_AllFaces(modifications[categorizador].src).then(function (data) {
                     controler_personalization.personalização_camada_03(data.x, data.y, data.width, data.height)
                 })
-
             break;
         case 4:
             (categorizador == -1) ? controler_personalization.personalização_camada_04():
                 detect_AllFaces(modifications[categorizador].src).then(function (data) {
                     controler_personalization.personalização_camada_04(data.x, data.y, data.width, data.height)
                 })
-
             break;
         case 5:
             (categorizador == -1) ? controler_personalization.personalização_camada_05():
                 detect_AllFaces(modifications[categorizador].src).then(function (data) {
                     controler_personalization.personalização_camada_05(data.x, data.y, data.width, data.height)
                 })
-
             break;
     };
-
 })
 
 app.listen(process.env.PORT_APP, () => {

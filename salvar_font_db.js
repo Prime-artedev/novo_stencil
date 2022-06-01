@@ -1,30 +1,28 @@
-const poll = require('./db/conn')
+const font = require('./models/font')
 
 
-module.exports.salvar_font_db = async function (font, res) {
+module.exports.salvar_font_db = async function (x) {
 
-    const sql = await `INSERT INTO app_stylos (font) VALUE ('${font}')`
-
-    poll.getConnection((error, conn) => {
-        if (error) {
-            return res.status(500).send({
-                error: error
-            })
+    let cadastro = await font.findOne({
+        where: {
+            font: x
         }
-
-
-        conn.query(sql, (error, result, fields) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error
-                })
-            } else {
-                return res.status(200).send(
-                    "font Cadastrada"
-                ).end()
-            }
-
-        })
     })
 
+    if (cadastro === null) {
+
+        return await font.create({
+            font: x
+
+        }).then(res => {
+
+            //console.log(res)
+            return (res)
+        })
+
+    } else {
+
+        return "cadastrado"
+
+    }
 }

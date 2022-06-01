@@ -1,5 +1,4 @@
 require('dotenv').config()
-
 const {
     Sequelize
 } = require("sequelize") // estamos importando so o sequelize
@@ -7,7 +6,7 @@ const {
 
 const user = process.env.USER;
 const password = process.env.PASSWORD;
-const database = "app_stylos"
+const database = process.env.DATABASE
 
 const sequelize = new Sequelize(database, user, password, { // fazendo a conexao com o banco
 
